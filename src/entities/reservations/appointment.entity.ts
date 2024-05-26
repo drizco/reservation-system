@@ -17,6 +17,9 @@ export class Appointment {
   @Column('timestamptz')
   appointmentTime: Date;
 
+  @Column({ default: false })
+  confirmed: boolean;
+
   @ManyToOne(() => Client, (client) => client.appointments, {
     onDelete: 'CASCADE',
   })
