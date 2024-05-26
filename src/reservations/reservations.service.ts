@@ -67,6 +67,16 @@ export class ReservationsService {
     return availabilityWithOpenAppointments;
   }
 
+  /**
+   * getAvailabilityWithOpenAppointments
+   *
+   * This is a cool function that really should have been unit tested rather
+   * than relying on e2e tests.
+   *
+   * It takes a provider's availability with the existing appointments, determines
+   * which time slots are available, and returns the availability with the open
+   * appointments rather than the reserved ones
+   */
   getAvailabilityWithOpenAppointments(
     availability: Availability[],
   ): Availability[] {
@@ -103,6 +113,7 @@ export class ReservationsService {
     appointment.availability = availability;
 
     appointment = await this.appointmentRepository.save(appointment);
+    // remove existing appointments because it's nobody's business
     delete appointment.availability.appointments;
     return appointment;
   }
