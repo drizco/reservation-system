@@ -8,7 +8,7 @@ import * as request from 'supertest';
 import { Repository } from 'typeorm';
 import { AppModule } from '../src/app.module';
 
-describe('Availability', () => {
+describe('Reservations', () => {
   let app: INestApplication;
   let availabilityRepository: Repository<Availability>;
   let clientId: number;
