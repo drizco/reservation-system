@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { addDays, addMinutes, endOfDay, isEqual, startOfDay } from 'date-fns';
+import { CreateAppointmentDto } from 'src/dto/create-appointment.dto copy';
 import { CreateAvailabilityDto } from 'src/dto/create-availability.dto';
 import { Appointment } from 'src/entities/reservations/appointment.entity';
 import { Availability } from 'src/entities/reservations/availability.entity';
 import { Provider } from 'src/entities/users/provider.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 
 @Injectable()
 export class ReservationsService {
@@ -12,7 +14,7 @@ export class ReservationsService {
     @InjectRepository(Availability)
     private availabilityRepository: Repository<Availability>,
     @InjectRepository(Appointment)
-    private appointmentRespository: Repository<Appointment>,
+    private appointmentRepository: Repository<Appointment>,
     @InjectRepository(Provider)
     private providersRepository: Repository<Provider>,
   ) {}
@@ -35,6 +37,7 @@ export class ReservationsService {
     await this.availabilityRepository.save(availability);
     return availability;
   }
+
   async getAvailability({
     providerId,
     startDate,
@@ -84,6 +87,34 @@ export class ReservationsService {
       }
       return { ...avail, appointments: availableAppointments };
     });
+  }
+
+  async createAppointment(
+    createAppointmentDto: CreateAppointmentDto,
+  ): Promise<Appointment> {
+    const availability = await this.availabilityRepository.findOne({
+      where: {
+        availabilityId: createAppointmentDto.availabilityId,
+      },
+      relations: ['appointments'],
+    });
+    let appointment = this.appointmentRepository.create(createAppointmentDto);
+
+    appointment.availability = availability;
+
+    appointment = await this.appointmentRepository.save(appointment);
+    delete appointment.availability.appointments;
+    return appointment;
+  }
+
+  async confirmAppointment(appointmentId: number) {
+    await this.appointmentRepository.update(
+      {
+        appointmentId,
+      },
+      { confirmed: true },
+    );
+    return this.appointmentRepository.findOne({ where: { appointmentId } });
   }
 
   getJsDate(dateString?: string): Date {
