@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateAvailabilityDto } from 'src/dto/create-availability.dto';
 import { ReservationsService } from './reservations.service';
 
@@ -11,5 +11,18 @@ export class AvailabilityController {
     @Body() createAvailabilityDto: CreateAvailabilityDto,
   ) {
     return this.reservationsService.createAvailability(createAvailabilityDto);
+  }
+
+  @Get(':providerId')
+  async getAvailability(
+    @Param('providerId') providerId: number,
+    @Query('startDate') startDate?: string,
+    @Query('numDays') numDays?: number,
+  ) {
+    return this.reservationsService.getAvailability({
+      providerId,
+      startDate,
+      numDays,
+    });
   }
 }

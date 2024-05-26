@@ -35,4 +35,62 @@ export class ReservationsService {
     await this.availabilityRepository.save(availability);
     return availability;
   }
+  async getAvailability({
+    providerId,
+    startDate,
+    numDays,
+  }: {
+    providerId: number;
+    startDate?: string;
+    numDays?: number;
+  }): Promise<Availability[]> {
+    const startDateJs = startOfDay(this.getJsDate(startDate));
+    // default to 7 days from now
+    const endDateJs = endOfDay(addDays(startDateJs, numDays ?? 7));
+
+    const availability = await this.availabilityRepository.find({
+      where: {
+        provider: {
+          providerId,
+        },
+        date: Between(startDateJs, endDateJs),
+      },
+      relations: ['appointments'],
+    });
+
+    const availabilityWithOpenAppointments =
+      this.getAvailabilityWithOpenAppointments(availability);
+
+    return availabilityWithOpenAppointments;
+  }
+
+  getAvailabilityWithOpenAppointments(
+    availability: Availability[],
+  ): Availability[] {
+    return availability.map((avail) => {
+      const { startTime, endTime, appointments } = avail;
+      const availableAppointments = [];
+      const existingAppoinments = appointments.map(
+        ({ appointmentTime }) => new Date(appointmentTime),
+      );
+      let date = new Date(startTime);
+      while (!isEqual(date, new Date(endTime))) {
+        if (existingAppoinments.every((d) => !isEqual(date, d))) {
+          availableAppointments.push({
+            appointmentTime: date.toISOString(),
+          });
+        }
+        date = addMinutes(date, 15);
+      }
+      return { ...avail, appointments: availableAppointments };
+    });
+  }
+
+  getJsDate(dateString?: string): Date {
+    let jsDate = new Date(dateString);
+    if (jsDate.toString() === 'Invalid Date') {
+      jsDate = new Date();
+    }
+    return jsDate;
+  }
 }
