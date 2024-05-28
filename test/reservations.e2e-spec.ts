@@ -198,6 +198,7 @@ describe('Reservations', () => {
         .post('/appointments')
         .send({
           availabilityId,
+          clientId,
           providerId,
           appointmentTime,
         })
