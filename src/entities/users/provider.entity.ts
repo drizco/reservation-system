@@ -16,10 +16,10 @@ export class Provider {
   @PrimaryGeneratedColumn()
   providerId: number;
 
-  @Column()
+  @Column({ nullable: true })
   license: string;
 
-  @Column()
+  @Column({ nullable: true })
   state: string;
 
   @OneToMany(() => Availability, (availability) => availability.provider)
